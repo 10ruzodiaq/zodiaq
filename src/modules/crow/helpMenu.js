@@ -1,48 +1,114 @@
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 const { v2Message } = require("../../utils/v2Message");
 const config = require("../../config");
 
 const cp = config.prefixes.crow;
-const lp = config.prefixes.logs;
-const tp = config.prefixes.ticket;
 
-function buildHelpMessage() {
-  return v2Message({
-    title: "Aide",
+const HELP_CATEGORIES = {
+  general: {
+    label: "General",
+    title: "Aide - General",
     sections: [
       {
-        heading: "Prefixes",
-        body: `\`${cp}\` Crow (moderation, utilitaire)\n\`${lp}\` Logs (surveillance serveur)\n\`${tp}\` Ticket (systeme de tickets)`,
+        heading: "Prefixes du Bot",
+        body: `\`${config.prefixes.crow}\` → Crow (moderation, utilitaire)\n\`${config.prefixes.logs}\` → Logs (surveillance serveur)\n\`${config.prefixes.ticket}\` → Ticket (systeme de tickets)`,
       },
       {
         heading: "Commandes",
-        body: `\`${cp}ping\` latence\n\`${cp}crowpanel\` panel principal\n\`${cp}commands\` liste etendue\n\`${cp}serverinfo\` infos serveur\n\`${cp}userinfo @membre\` infos membre\n\`${cp}avatar @membre\` avatar\n\`${cp}stats\` statistiques serveur\n\`${cp}botinfo\` infos bot`,
+        body: `\`${cp}ping\` latence\n\`${cp}crowpanel\` panel principal\n\`${cp}commands\` liste etendue`,
       },
       {
-        heading: "Moderation",
-        body: `\`${cp}clear <1-100>\` supprimer messages\n\`${cp}slowmode <sec>\` mode lent\n\`${cp}lock\` / \`${cp}unlock\` verrouiller salon\n\`${cp}timeout @m <min> [raison]\` mute\n\`${cp}untimeout @m\` unmute\n\`${cp}kick @m [raison]\` expulser\n\`${cp}ban @m [raison]\` bannir\n\`${cp}unban <id>\` debannir\n\`${cp}nuke\` reinitialiser salon`,
+        heading: "Informations",
+        body: `\`${cp}serverinfo\` infos serveur\n\`${cp}userinfo @membre\` infos membre`,
+      },
+    ],
+  },
+  moderation: {
+    label: "Moderation",
+    title: "Aide - Moderation",
+    sections: [
+      {
+        heading: "Messages et salon",
+        body: `\`${cp}clear <1-100>\`\n\`${cp}slowmode <sec>\`\n\`${cp}lock\` / \`${cp}unlock\``,
       },
       {
-        heading: "Utilitaire",
-        body: `\`${cp}ghostping @m [#salon] [msg]\`\n\`${cp}hide\` / \`${cp}unhide\` masquer salon\n\`${cp}topic <texte>\` changer sujet\n\`${cp}rename [#salon] <nom>\` renommer\n\`${cp}clone [#salon]\` cloner\n\`${cp}announce <texte>\` annonce\n\`${cp}emoji <emoji>\` voler emoji\n\`${cp}nick @m <pseudo>\` / \`${cp}resetnick @m\`\n\`${cp}addrole @m @role\` / \`${cp}removerole @m @role\``,
+        heading: "Sanctions",
+        body: `\`${cp}timeout @m <min> [raison]\`\n\`${cp}untimeout @m\`\n\`${cp}kick @m [raison]\``,
       },
       {
-        heading: "Warns",
-        body: `\`${cp}warn @m [raison]\` avertir\n\`${cp}warnings @m\` voir warns\n\`${cp}delwarn @m <i>\` supprimer warn\n\`${cp}clearwarns @m\` tout effacer`,
+        heading: "Bannissement",
+        body: `\`${cp}ban @m [raison]\`\n\`${cp}unban <id>\`\n\`${cp}nuke\``,
+      },
+    ],
+  },
+  admin: {
+    label: "Admin",
+    title: "Aide - Administration",
+    sections: [
+      {
+        heading: "Gestion",
+        body: `\`${cp}announce <texte>\`\n\`${cp}stats\`\n\`${cp}botinfo\``,
       },
       {
         heading: "Configuration",
-        body: `\`${cp}setup\` config actuelle\n\`${cp}setlogs\` / \`${cp}setwelcome\` / \`${cp}setgoodbye\`\n\`${cp}setautorole\` / \`${cp}setmodrole\` / \`${cp}setadminrole\` / \`${cp}setmuterole\``,
+        body: `\`${cp}setup\` config actuelle\n\`${cp}setlogs\`, \`${cp}setwelcome\`, \`${cp}setgoodbye\``,
       },
       {
-        heading: "Logs",
-        body: `\`${lp}config\` voir config\n\`${lp}config setup\` creer salons\n\`${lp}config set <cat> <#salon>\`\n\`${lp}config reset\`\n\`${lp}logs on/off\` / \`${lp}status\``,
-      },
-      {
-        heading: "Tickets",
-        body: `\`${tp}setup-ticket\` installer le panel de tickets`,
+        heading: "Roles",
+        body: `\`${cp}setautorole\`, \`${cp}setmodrole\`, \`${cp}setadminrole\`, \`${cp}setmuterole\``,
       },
     ],
-    noAccent: true,
+  },
+  utility: {
+    label: "Utilitaire",
+    title: "Aide - Utilitaire",
+    sections: [
+      {
+        heading: "Profils",
+        body: `\`${cp}avatar\`, \`${cp}userinfo\`, \`${cp}serverinfo\``,
+      },
+      {
+        heading: "Salons",
+        body: `\`${cp}hide\`, \`${cp}unhide\`, \`${cp}topic\`, \`${cp}rename\`, \`${cp}clone\``,
+      },
+      {
+        heading: "Warns",
+        body: `\`${cp}warn @m\`, \`${cp}warnings @m\`, \`${cp}delwarn @m <i>\`, \`${cp}clearwarns @m\``,
+      },
+      {
+        heading: "Alias",
+        body: `\`${cp}purge\`=clear, \`${cp}mute\`=timeout, \`${cp}gp\`=ghostping`,
+      },
+    ],
+  },
+};
+
+function makeNavRows(activeKey) {
+  const entries = Object.entries(HELP_CATEGORIES);
+  const rows = [];
+  for (let i = 0; i < entries.length; i += 5) {
+    const row = new ActionRowBuilder();
+    for (const [key, value] of entries.slice(i, i + 5)) {
+      row.addComponents(
+        new ButtonBuilder()
+          .setCustomId(`help:cat:${key}`)
+          .setLabel(value.label)
+          .setStyle(key === activeKey ? ButtonStyle.Primary : ButtonStyle.Secondary)
+      );
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+function buildHelpMessage(categoryKey = "general") {
+  const key = HELP_CATEGORIES[categoryKey] ? categoryKey : "general";
+  const current = HELP_CATEGORIES[key];
+  return v2Message({
+    title: current.title,
+    sections: current.sections,
+    lines: ["Clique sur un bouton pour changer de categorie."],
+    components: makeNavRows(key),
   });
 }
 

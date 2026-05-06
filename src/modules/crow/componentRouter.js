@@ -1,7 +1,13 @@
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require("discord.js");
 const { ephemeralV2Message } = require("../../utils/v2Message");
+const { buildHelpMessage } = require("./helpMenu");
 
 async function handleButton(interaction) {
+  if (interaction.customId.startsWith("help:cat:")) {
+    const categoryKey = interaction.customId.replace("help:cat:", "");
+    await interaction.update(buildHelpMessage(categoryKey));
+    return;
+  }
   if (interaction.customId === "crow:hello") {
     await interaction.reply(ephemeralV2Message({ title: "Presentation", lines: [`Salut ${interaction.user}, bienvenue chez les crows.`] }));
     return;

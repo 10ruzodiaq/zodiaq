@@ -109,7 +109,7 @@ function delWarn(guildId, userId, index) {
 async function handlePrefixCommand(message, rawName, args, panelCommand) {
   const name = resolveCommand(rawName);
 
-  if (name === "help") { await message.reply(buildHelpMessage()); return true; }
+  if (name === "help") { await message.reply(buildHelpMessage("general")); return true; }
   if (name === "commands") {
     const unique = [...new Set(ALL_COMMANDS)];
     await message.reply(ok("Liste Des Commandes", [`Total: **${unique.length}**`, unique.map((c) => `\`+${c}\``).join(" ")]));

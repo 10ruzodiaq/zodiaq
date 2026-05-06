@@ -8,7 +8,7 @@ function makeSeparator(spacing = 1, divider = true) {
   return { type: 14, spacing, divider };
 }
 
-function v2Message({ title, sections = [], lines = [], components = [] }) {
+function v2Message({ title, sections = [], lines = [], components = [], noAccent = false }) {
   const containerChildren = [];
 
   if (title) {
@@ -46,14 +46,18 @@ function v2Message({ title, sections = [], lines = [], components = [] }) {
     containerChildren.pop();
   }
 
+  const container = {
+    type: 17,
+    components: containerChildren,
+  };
+
+  if (!noAccent) {
+    container.accent_color = null;
+  }
+
   return {
     flags: MessageFlags.IsComponentsV2,
-    components: [
-      {
-        type: 17,
-        components: containerChildren,
-      },
-    ],
+    components: [container],
   };
 }
 

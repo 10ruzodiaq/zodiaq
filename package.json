@@ -1,0 +1,19 @@
+{
+  "name": "bot-combo",
+  "version": "1.0.0",
+  "description": "Bot Discord combo - Crow + Ticket + Logs fusionnés en 1 seul bot",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "deploy": "node src/deploy-commands.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "discord.js": "^14.26.3",
+    "dotenv": "^17.4.2",
+    "moment": "^2.30.1"
+  }
+}
